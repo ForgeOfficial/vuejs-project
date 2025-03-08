@@ -3,6 +3,8 @@ import {useRoute} from "vue-router";
 import {onMounted, ref} from "vue";
 import Headers from "@/components/Headers.vue";
 import PopupRss from "@/components/PopupRss.vue";
+import {parseRssFeed} from "@/rssFetch.js";
+import router from "@/router/index.js";
 
 const route = useRoute();
 const feeds = ref(localStorage.getItem('rssFeeds') ? JSON.parse(localStorage.getItem('rssFeeds')) : []);
@@ -19,47 +21,10 @@ const closePopup = () => {
   showPopup.value = false;
 };
 
-const parseRssFeed = async () => {
-  try {
-    const res = await fetch(rssFeed.url);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-    const xml = await res.text();
-    const doc = new DOMParser().parseFromString(xml, "text/xml");
-    loaded.value = true;
-    return Array.from(doc.querySelectorAll("item")).map(item => {
-      let desc = item.querySelector("description")?.textContent || '';
-      let imgUrl = null;
-
-      const title = item.querySelector("title")?.textContent || '';
-      const link = item.querySelector("link")?.textContent || '';
-
-      if (desc) {
-        const descDoc = new DOMParser().parseFromString(desc, "text/html");
-        const img = descDoc.querySelector('img');
-        if (img) {
-          imgUrl = img.getAttribute('src');
-          img.remove();
-          desc = descDoc.body.innerHTML;
-        }
-      }
-
-      if (!imgUrl) {
-        const enc = item.querySelector("enclosure");
-        if (enc) imgUrl = enc.getAttribute('url');
-      }
-
-      return { title, link, desc, imgUrl };
-    });
-  } catch (err) {
-    console.error("Error:", err);
-    errorMessage.value = `${err.message} (maybe cors issue)`;
-    throw err;
-  }
-}
 
 const fetchNews = async () => {
-  news.value = (await parseRssFeed()).slice(0, limit.value === 'all' ? news.value.length : parseInt(limit.value, 10));
+  news.value = (await parseRssFeed(rssFeed.url, loaded, errorMessage));
+  news.value = news.value.slice(0, limit.value === 'all' ? news.value.length : limit.value);
 }
 
 onMounted(() => {
@@ -86,6 +51,10 @@ onMounted(() => {
           <a :href="newsElement.link" target="_blank" class="text-blue-500 hover:underline">{{ newsElement.link }}</a>
           <p v-html="newsElement.desc"></p>
           <img v-if="newsElement.imgUrl" :src="newsElement.imgUrl" alt="News Image" class="news-image">
+        </div>
+        <div class="flex">
+          <button @click="router.push({name: 'news-page', params: {rssId: route.params.rssId, newsUrl: newsElement.link}})" class="px-3 py-1 bg-cyan-400 text-white rounded cursor-pointer">Voir
+          </button>
         </div>
       </div>
     </div>

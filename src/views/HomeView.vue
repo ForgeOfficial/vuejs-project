@@ -3,10 +3,12 @@ import {ref} from "vue";
 import router from "@/router/index.js";
 import Headers from "@/components/Headers.vue";
 import PopupRss from "@/components/PopupRss.vue";
+import {Settings} from "@/settings.js";
 
 const feeds = ref(localStorage.getItem('rssFeeds') ? JSON.parse(localStorage.getItem('rssFeeds')) : []);
 const showPopup = ref(false);
 const editFeedData = ref(null);
+const settings = ref(new Settings());
 
 const closePopup = () => {
   editFeedData.value = null;
@@ -36,6 +38,9 @@ const editFeed = (feed, index) => {
             <a :href="feed.url" target="_blank" class="text-blue-500 hover:underline">{{ feed.url }}</a>
           </div>
           <div class="flex gap-2">
+            <button :class="[settings.hasFlux(feed) ? 'bg-red-400' : 'bg-cyan-400']" @click="settings[settings.hasFlux(feed) ? 'removeFlux': 'addFlux'](feed)" class="px-3 py-1 text-white rounded cursor-pointer">
+              {{settings.hasFlux(feed) ? 'Ne plus suivre' : 'Suivre'}}
+            </button>
             <button @click="router.push({name: 'rss-page', params: {rssId: index}})"
                     class="px-3 py-1 bg-cyan-400 text-white rounded cursor-pointer">Voir
             </button>

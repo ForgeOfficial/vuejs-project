@@ -13,7 +13,7 @@ const route = useRoute();
     <button @click="router.push({name: 'home'})" :class="{'border-b': route.name === 'home'}" class="flex items-center gap-2 text-gray-700 hover:text-black cursor-pointer">
       <ListBulletIcon class="w-5 h-5" /> Liste des flux
     </button>
-    <button :class="{'border-b': route.name === 'settings'}" class="flex items-center gap-2 text-gray-700 hover:text-black cursor-pointer">
+    <button @click="router.push({name: 'settings'})" :class="{'border-b': route.name === 'settings'}" class="flex items-center gap-2 text-gray-700 hover:text-black cursor-pointer">
       <CogIcon class="w-5 h-5" /> Préférences
     </button>
   </nav>
